@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 615501dbe4f3fe94fbf4b564abb10237, type: 3}
+  m_Name: ModConfig
+  m_EditorClassIdentifier: 
+  id: 0
+  title: Simple Keypad
+  author: RockDood
+  description: 'The Vanilla Keypad but the symbols are easier to communitcate.
+
+
+    Primarily for educational purposes as teachers who may want to use KTANE as a
+    communication teaching tool may find that the base game symbols are not very easy
+    to relay for the un-initiated.'
+  version: 1.0
+  outputFolder: build
+  previewImage: {fileID: 2800000, guid: 6a95346252dcd6b429631eee2a745e14, type: 3}

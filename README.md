@@ -1,1 +1,1 @@
-KeypadPictures
+#[ModKit Wiki](../../wiki)
