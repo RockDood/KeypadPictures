@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using UnityEngine;
@@ -80,7 +81,7 @@ public class KeypadPicture : KtaneModule
         base.Awake();
 
         SelectedColumn = Rnd.Range(0, 6);
-        Debug.LogFormat("[Simple Keypad #{0}]Selected Column: #{1}", ModuleID, SelectedColumn);
+        Debug.LogFormat("[Simplified Keypad #{0}] Selected Column: #{1}", ModuleID, SelectedColumn);
 
         for (int i = 0; i < Buttons.Length; i++)
         {
@@ -104,7 +105,7 @@ public class KeypadPicture : KtaneModule
 
         SortArray(CorrectOrder);
 
-        Debug.LogFormat("[Simple Keypad #{5}] First Position: {0}, Second Position: {1}, Third Position: {2}, Forth Position: {3}. First button press is the {4}", SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[0])], SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[1])], SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[2])], SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[3])], SpriteNames[ColumnReference(SelectedColumn, CorrectOrder[0])], ModuleID);
+        Debug.LogFormat("[Simplified Keypad #{5}] First Position: {0}, Second Position: {1}, Third Position: {2}, Forth Position: {3}. First button press is the {4}", SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[0])], SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[1])], SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[2])], SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[3])], SpriteNames[ColumnReference(SelectedColumn, CorrectOrder[0])], ModuleID);
     }
 
     void KeyPress(int button)
@@ -124,16 +125,16 @@ public class KeypadPicture : KtaneModule
             return;
         bool ActiveButtonCorrect = false;
 
-        Debug.LogFormat("[Simple Keypad #{2}] You pressed a button that is associated with the number {0}. I expected the number {1}", ColumnReference(SelectedColumn, ChosenDigits[button]), ColumnReference(SelectedColumn, CorrectOrder[CurrentStage]), ModuleID);
+        Debug.LogFormat("[Simplified Keypad #{2}] You pressed a button that is associated with the number {0}. I expected the number {1}", ColumnReference(SelectedColumn, ChosenDigits[button]), ColumnReference(SelectedColumn, CorrectOrder[CurrentStage]), ModuleID);
 
         if (ColumnReference(SelectedColumn, ChosenDigits[button]) == ColumnReference(SelectedColumn, CorrectOrder[CurrentStage]))
         {
             if (CurrentStage < CorrectOrder.Length)
             {
                 ActiveButtonCorrect = true;
-                Debug.LogFormat("[Simple Keypad #{0}] Stage {1} Passed", ModuleID, CurrentStage + 1);
+                Debug.LogFormat("[Simplified Keypad #{0}] Stage {1} Passed", ModuleID, CurrentStage + 1);
                 CurrentStage++;
-                Debug.LogFormat("[Simple Keypad #{0}] The next symbol to press will be: {1}", ModuleID, SpriteNames[ColumnReference(SelectedColumn, CorrectOrder[0])]);
+                Debug.LogFormat("[Simplified Keypad #{0}] The next symbol to press will be: {1}", ModuleID, SpriteNames[ColumnReference(SelectedColumn, CorrectOrder[0])]);
                 StartCoroutine(animateButton(ButtonsTransforms[button], ActiveButtonCorrect));
                 StartCoroutine(animateLED(LEDs[button], 2));
                 HasBeenPressed[button] = true;
@@ -264,5 +265,52 @@ public class KeypadPicture : KtaneModule
             }
         }
         return array;
+    }
+
+#pragma warning disable 0414
+    private readonly string TwitchHelpMessage = "!{0} press 3 1 2 4 | The buttons are 1=TL, 2=TR, 3=BL, 4=BR";
+#pragma warning restore 0414
+
+    private IEnumerator ProcessTwitchCommand(string command)
+    {
+        var m = Regex.Match(command, @"^\s*(?:press\s+)?(?<d>[1234 ]+)\s*$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+        if (!m.Success)
+            yield break;
+        var list = new List<int>();
+        foreach (var c in m.Groups["d"].Value)
+        {
+            int ix = Array.IndexOf("1234 ".ToCharArray(), c);
+            if (ix == 4)
+                continue;
+            if (ix == -1)
+                yield break;
+            if (!HasBeenPressed[ix])
+                list.Add(ix);
+        }
+        if (list.Count == 0)
+            yield break;
+        yield return null;
+        for (int i = 0; i < list.Count; i++)
+            if (!HasBeenPressed[list[i]])
+            {
+                Buttons[list[i]].OnInteract();
+                yield return new WaitForSeconds(0.1f);
+            }
+    }
+
+    private IEnumerator TwitchHandleForcedSolve()
+    {
+        while (!_isSolved)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                if (SpriteNames[ColumnReference(SelectedColumn, ChosenDigits[j])] == SpriteNames[ColumnReference(SelectedColumn, CorrectOrder[CurrentStage])])
+                {
+                    Buttons[j].OnInteract();
+                    yield return new WaitForSeconds(0.1f);
+                    break;
+                }
+            }
+        }
     }
 }
